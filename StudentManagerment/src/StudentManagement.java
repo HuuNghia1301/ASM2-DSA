@@ -1,16 +1,19 @@
 import java.util.Random;
 
 public class StudentManagement {
-    private StudentStack studentStack;
+    private StackStudent studentStack; // Stack gốc chứa sinh viên
+    private StackStudent sortedStack;  // Stack phụ chứa sinh viên đã sắp xếp
 
     // Constructor
     public StudentManagement(int capacity) {
-        studentStack = new StudentStack(capacity);
+        studentStack = new StackStudent(capacity);
+        sortedStack = new StackStudent(capacity);
     }
 
     // Thêm sinh viên
     public void addStudent(Student student) {
         studentStack.push(student);
+        sortedStack.push(student); // Đẩy vào stack phụ để giữ dữ liệu giống nhau
     }
 
     // Thêm số lượng sinh viên ngẫu nhiên
@@ -32,32 +35,36 @@ public class StudentManagement {
 
     // Xóa sinh viên theo ID
     public boolean deleteStudent(int id) {
-        Student[] temp = new Student[studentStack.capacity];
-        int index = 0;
         boolean isDeleted = false;
+        StackStudent tempStack = new StackStudent(studentStack.capacity);
 
+        // Dùng Stack tạm thời để tìm và xóa sinh viên theo ID
         while (!studentStack.isEmpty()) {
             Student student = studentStack.pop();
             if (student.getId() == id) {
                 isDeleted = true;
             } else {
-                temp[index++] = student;
+                tempStack.push(student);
             }
         }
 
-        for (int i = index - 1; i >= 0; i--) {
-            studentStack.push(temp[i]);
+        // Push lại các sinh viên vào stack gốc
+        while (!tempStack.isEmpty()) {
+            studentStack.push(tempStack.pop());
         }
+
+        // Cập nhật stack phụ sau khi xóa
+        updateSortedStack();
 
         return isDeleted;
     }
 
     // Cập nhật thông tin sinh viên theo ID
     public boolean updateStudent(int id, String newName, double newScore) {
-        Student[] temp = new Student[studentStack.capacity];
-        int index = 0;
         boolean isUpdated = false;
+        StackStudent tempStack = new StackStudent(studentStack.capacity);
 
+        // Dùng Stack tạm thời để tìm và cập nhật sinh viên theo ID
         while (!studentStack.isEmpty()) {
             Student student = studentStack.pop();
             if (student.getId() == id) {
@@ -65,127 +72,147 @@ public class StudentManagement {
                 student.setScore(newScore);
                 isUpdated = true;
             }
-            temp[index++] = student;
+            tempStack.push(student);
         }
 
-        for (int i = index - 1; i >= 0; i--) {
-            studentStack.push(temp[i]);
+        // Push lại các sinh viên vào stack gốc
+        while (!tempStack.isEmpty()) {
+            studentStack.push(tempStack.pop());
         }
+
+        // Cập nhật stack phụ sau khi cập nhật
+        updateSortedStack();
 
         return isUpdated;
     }
 
     // Tìm kiếm sinh viên theo ID
     public Student findStudentById(int id) {
-        Student[] temp = new Student[studentStack.capacity];
-        int index = 0;
         Student foundStudent = null;
+        StackStudent tempStack = new StackStudent(studentStack.capacity);
 
+        // Dùng Stack tạm thời để tìm sinh viên theo ID
         while (!studentStack.isEmpty()) {
             Student student = studentStack.pop();
             if (student.getId() == id) {
                 foundStudent = student;
             }
-            temp[index++] = student;
+            tempStack.push(student);
         }
 
-        for (int i = index - 1; i >= 0; i--) {
-            studentStack.push(temp[i]);
+        // Push lại các sinh viên vào stack gốc
+        while (!tempStack.isEmpty()) {
+            studentStack.push(tempStack.pop());
         }
 
         return foundStudent;
     }
 
-    // Sắp xếp sinh viên theo điểm
-    public void sortStudentsByScore(boolean useMergeSort) {
-        Student[] temp = new Student[studentStack.capacity];
-        int index = 0;
+    // Cập nhật stack phụ sau mỗi lần thay đổi trên stack gốc
+    private void updateSortedStack() {
+        sortedStack.clear(); // Xóa dữ liệu cũ trong stack phụ
+        StackStudent tempStack = new StackStudent(studentStack.capacity);
 
+        // Sao chép tất cả sinh viên từ stack gốc sang stack phụ
         while (!studentStack.isEmpty()) {
-            temp[index++] = studentStack.pop();
+            tempStack.push(studentStack.pop());
         }
 
-        if (useMergeSort) {
-            mergeSort(temp, 0, index - 1);
-        } else {
-            for (int i = 0; i < index - 1; i++) {
-                for (int j = 0; j < index - i - 1; j++) {
-                    if (temp[j].getScore() > temp[j + 1].getScore()) {
-                        Student swap = temp[j];
-                        temp[j] = temp[j + 1];
-                        temp[j + 1] = swap;
-                    }
-                }
-            }
-        }
-
-        for (int i = index - 1; i >= 0; i--) {
-            studentStack.push(temp[i]);
+        // Đẩy lại vào stack gốc và stack phụ
+        while (!tempStack.isEmpty()) {
+            Student student = tempStack.pop();
+            studentStack.push(student);
+            sortedStack.push(student);
         }
     }
 
-    private void mergeSort(Student[] array, int left, int right) {
+    // Sắp xếp sinh viên theo điểm mà không thay đổi stack gốc trong quá trình sắp xếp
+    public void sortStudentsByScore(boolean useMergeSort) {
+        // Thực hiện sắp xếp trên stack phụ (sortedStack)
+        if (useMergeSort) {
+            mergeSort(sortedStack, 0, sortedStack.size() - 1);
+        } else {
+            bubbleSort(sortedStack);
+        }
+    }
+
+    // Bubble Sort để sắp xếp sinh viên trong stack
+    private void bubbleSort(StackStudent stack) {
+        int size = stack.size();
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = 0; j < size - i - 1; j++) {
+                Student current = stack.get(j);
+                Student next = stack.get(j + 1);
+                if (current.getScore() > next.getScore()) {
+                    stack.swap(j, j + 1);
+                }
+            }
+        }
+    }
+
+    // Merge Sort để sắp xếp sinh viên trong stack
+    private void mergeSort(StackStudent stack, int left, int right) {
         if (left >= right) {
             return;
         }
 
         int mid = (left + right) / 2;
-        mergeSort(array, left, mid);
-        mergeSort(array, mid + 1, right);
-        merge(array, left, mid, right);
+        mergeSort(stack, left, mid);
+        mergeSort(stack, mid + 1, right);
+        merge(stack, left, mid, right);
     }
 
-    private void merge(Student[] array, int left, int mid, int right) {
+    private void merge(StackStudent stack, int left, int mid, int right) {
         int n1 = mid - left + 1;
         int n2 = right - mid;
 
-        Student[] leftArray = new Student[n1];
-        Student[] rightArray = new Student[n2];
+        StackStudent leftStack = new StackStudent(n1);
+        StackStudent rightStack = new StackStudent(n2);
 
         for (int i = 0; i < n1; i++) {
-            leftArray[i] = array[left + i];
+            leftStack.push(stack.get(left + i));
         }
         for (int j = 0; j < n2; j++) {
-            rightArray[j] = array[mid + 1 + j];
+            rightStack.push(stack.get(mid + 1 + j));
         }
 
         int i = 0, j = 0, k = left;
         while (i < n1 && j < n2) {
-            if (leftArray[i].getScore() <= rightArray[j].getScore()) {
-                array[k++] = leftArray[i++];
+            if (leftStack.get(i).getScore() <= rightStack.get(j).getScore()) {
+                stack.swap(k++, i++);
             } else {
-                array[k++] = rightArray[j++];
+                stack.swap(k++, j++);
             }
         }
 
         while (i < n1) {
-            array[k++] = leftArray[i++];
+            stack.swap(k++, i++);
         }
         while (j < n2) {
-            array[k++] = rightArray[j++];
+            stack.swap(k++, j++);
         }
     }
 
     // In danh sách sinh viên
     public void printAllStudents() {
-        Student[] temp = new Student[studentStack.capacity];
-        int index = 0;
+        StackStudent tempStack = new StackStudent(studentStack.capacity);
 
+        // Chuyển tất cả sinh viên từ stack gốc vào stack tạm để in ra
         while (!studentStack.isEmpty()) {
-            temp[index++] = studentStack.pop();
+            tempStack.push(studentStack.pop());
         }
 
         System.out.printf("%-10s %-20s %-10s %-15s\n", "ID", "Name", "Score", "Ranking");
         System.out.println("--------------------------------------------------------------");
 
-        for (int i = index - 1; i >= 0; i--) {
-            Student student = temp[i];
+        while (!tempStack.isEmpty()) {
+            Student student = tempStack.pop();
             System.out.printf("%-10d %-20s %-10.2f %-15s\n",
                     student.getId(),
                     student.getName(),
                     student.getScore(),
                     student.getRanking());
-            studentStack.push(student);
+            studentStack.push(student); // Push lại vào stack gốc
         }
     }
 }

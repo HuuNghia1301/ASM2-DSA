@@ -2,7 +2,7 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        StudentManagement sm = new StudentManagement(100);
+        StudentManagement sm = new StudentManagement(1000);
 
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -29,6 +29,7 @@ public class Main {
                     double score = scanner.nextDouble();
                     sm.addStudent(new Student(name, id, score));
                     System.out.println("Student added.");
+                    sm.printAllStudents();
                     break;
 
                 case 2:
@@ -39,6 +40,7 @@ public class Main {
                     } else {
                         System.out.println("Student with that ID not found.");
                     }
+                    sm.printAllStudents();
                     break;
 
                 case 3:
@@ -54,6 +56,7 @@ public class Main {
                     } else {
                         System.out.println("Student with that ID not found.");
                     }
+                    sm.printAllStudents();
                     break;
 
                 case 4:
@@ -65,33 +68,35 @@ public class Main {
                     } else {
                         System.out.println("Student with that ID not found.");
                     }
+                    sm.printAllStudents();
                     break;
 
-                case 5:
-// Add random students before sorting
-System.out.print("Enter number of random students to add: ");
-int randomNum = scanner.nextInt();
-sm.addRandomStudents(randomNum);
-System.out.println("Added " + randomNum + " random students.");
-
-// Sort students by score
-long startTime, endTime;
-
-// Merge Sort
-startTime = System.nanoTime();
-sm.sortStudentsByScore(true); // true for Merge Sort
-endTime = System.nanoTime();
-double mergeSortTimeInMilliseconds = (endTime - startTime) / 1_000_000.0; // Convert to milliseconds
-System.out.println("Merge Sort execution time: " + String.format("%.2f", mergeSortTimeInMilliseconds) + " millisecond(s)");
-
-// Bubble Sort
-startTime = System.nanoTime();
-sm.sortStudentsByScore(false); // false for Bubble Sort
-endTime = System.nanoTime();
-double bubbleSortTimeInMilliseconds = (endTime - startTime) / 1_000_000.0; // Convert to milliseconds
-System.out.println("Bubble Sort execution time: " + String.format("%.2f", bubbleSortTimeInMilliseconds) + " millisecond(s)");
-
-break;
+                    case 5:
+                    // Thêm sinh viên ngẫu nhiên trước khi sắp xếp
+                    System.out.print("Enter number of random students to add: ");
+                    int randomNum = scanner.nextInt();
+                    sm.addRandomStudents(randomNum);
+                    System.out.println("Added " + randomNum + " random students.");
+                
+                    // Sắp xếp sinh viên theo điểm
+                    long startTime, endTime;
+                
+                    // Merge Sort
+                    startTime = System.nanoTime();
+                    sm.sortStudentsByScore(true); // true for Merge Sort
+                    endTime = System.nanoTime();
+                    double mergeSortTimeInMilliseconds = (endTime - startTime); // Convert to milliseconds
+                    System.out.println("Merge Sort execution time: " + String.format("%.2f", mergeSortTimeInMilliseconds) + " nanosecond(s)");
+                
+                    // Bubble Sort
+                    startTime = System.nanoTime();
+                    sm.sortStudentsByScore(false); // false for Bubble Sort
+                    endTime = System.nanoTime();
+                    double bubbleSortTimeInMilliseconds = (endTime - startTime) ; // Convert to milliseconds
+                    System.out.println("Bubble Sort execution time: " + String.format("%.2f", bubbleSortTimeInMilliseconds) + " nanosecond(s)");
+                
+                    break;
+                
 
                 case 0:
                     System.out.println("Exiting program.");
@@ -100,9 +105,6 @@ break;
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
-
-            // Print all students after each operation (add, update, delete, sort)
-            sm.printAllStudents();
         }
     }
 }
